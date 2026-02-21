@@ -1,0 +1,21 @@
+{
+  "name": "bannerlord-sage",
+  "version": "0.1.0",
+  "main": "src/stdio.ts",
+  "type": "module",
+  "scripts": {
+    "start": "bun run src/stdio.ts",
+    "start:http": "bun run src/http.ts",
+    "clean": "bun run src/scripts/clean-db.ts",
+    "index:csharp": "bun run src/scripts/index-csharp.ts",
+    "build": "bun run clean && bun run index:csharp"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.25.3",
+    "fast-xml-parser": "^5.3.4",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "@types/bun": "^1.3.8"
+  }
+}
