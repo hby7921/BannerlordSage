@@ -4,11 +4,7 @@
   "main": "src/stdio.ts",
   "type": "module",
   "scripts": {
-    "start": "bun run src/stdio.ts",
-    "start:http": "bun run src/http.ts",
-    "clean": "bun run src/scripts/clean-db.ts",
-    "index:csharp": "bun run src/scripts/index-csharp.ts",
-    "build": "bun run clean && bun run index:csharp"
+    "start": "bun run src/stdio.ts"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.25.3",
