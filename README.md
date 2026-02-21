@@ -68,10 +68,8 @@ bun install
 ```bash
 bun run src/scripts/index-csharp.ts
 bun run src/scripts/index-xml.ts
-bun run start
 ```
-
----
+> **💡 测试提示：** 索引完成后，你可以先在终端里单独输入 `bun run start` 测试一下服务器能不能正常启动。
 
 ## 🤖 接入 AI (以 VS Code + Cline 为例)
 
