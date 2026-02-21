@@ -1,81 +1,100 @@
 # BannerlordSage — Bannerlord Source MCP Server
 
-[![bun](https://img.shields.io/badge/Bun-%23000000.svg?style=flat&logo=bun&logoColor=white)](https://bun.com/) [![ripgrep](https://img.shields.io/badge/ripgrep-%23000000.svg?style=flat&logo=rust&logoColor=white)](https://github.com/BurntSushi/ripgrep)
 [![Bannerlord](https://img.shields.io/badge/Game-Bannerlord_II-8B0000?style=flat&logo=target)](https://www.taleworlds.com/en/Games/Bannerlord)
 [![ILSpy](https://img.shields.io/badge/Tool-ILSpy-blue?style=flat&logo=c-sharp)](https://github.com/icsharpcode/ILSpy)
+[![bun](https://img.shields.io/badge/Bun-%23000000.svg?style=flat&logo=bun&logoColor=white)](https://bun.com/) 
+[![ripgrep](https://img.shields.io/badge/ripgrep-%23000000.svg?style=flat&logo=rust&logoColor=white)](https://github.com/BurntSushi/ripgrep)
 
 一个提供《骑马与砍杀2：霸主》源代码搜索和数据浏览功能的 MCP 服务器。
 
-## 前言
+## 📖 前言
 
 本项目受 [RimSage](https://github.com/realloon/rimsage) 启发，针对《骑马与砍杀 2：霸主》的源码结构、XML 数据以及 Harmony 补丁开发需求进行了重构与定制。
 
-## 可用工具
+## 🛠️ 可用工具
 
-服务器提供以下工具：
+服务器提供以下工具，可供 AI 自动调用：
 
-- `search_source` - 搜索霸主源代码
-- `read_file` - 读取特定文件内容
-- `list_directory` - 列出目录结构
-- `search_xml` - 搜索 XML 数据文件
-- `get_item_stats` - 获取装备与物品的属性数据
-- `read_csharp_type` - 读取 C# 类/结构体/接口定义
-- `generate_harmony_patch` - 生成 Harmony 补丁代码模板
-- `trace_troop_tree` - 追踪兵种升级树与基础属性
-- `read_gauntlet_ui` - 解析 UI 界面与 ViewModel 的绑定关系
+- `search_source` - 搜索霸主源代码。
+- `read_file` - 读取特定文件内容。
+- `list_directory` - 列出目录结构。
+- `search_xml` - 搜索 XML 数据文件。
+- `get_item_stats` - 获取装备与物品的属性数据。
+- `read_csharp_type` - 读取 C# 类/结构体/接口定义。
+- `generate_harmony_patch` - 生成 Harmony 补丁代码模板。
+- `trace_troop_tree` - 追踪兵种升级树与基础属性。
+- `read_gauntlet_ui` - 解析 UI 界面与 ViewModel 的绑定关系。
 
-## 本地部署
+> **示例指令：** “请调用 `read_csharp_type` 工具查一下 `MobileParty` 类，看看它里面有没有和移动速度 (Speed) 相关的属性？”
 
-BannerlordSage 支持本地部署的 stdio 传输。
+---
 
-1. 安装依赖
+## 🚀 本地部署
 
-```sh
+### 1. 安装底层环境 (Windows)
+
+在终端（PowerShell）中运行以下命令安装必要组件：
+
+- **安装 Bun 运行时：**
+  ```powershell
+  powershell -c "irm bun.sh/install.ps1 | iex"
+  ```
+- **安装 Ripgrep ：**
+  ```powershell
+  winget install BurntSushi.ripgrep.MSVC
+  ```
+（安装完后可以在终端输入 bun -v 和 rg --version 测试一下是否成功）。
+### 2. 初始化项目
+
+在项目根目录下运行：
+```bash
 bun install
 ```
 
-2. 准备游戏数据
+### 3. 准备数据结构 
 
-在项目根目录下，确保存在以下目录结构，并将游戏文件放入对应位置：
+请在项目根目录下手动创建以下文件夹：
+- `dist/assets/Source/`
+- `dist/assets/Xmls/`
 
-- **C# 源代码**: 使用 ILSpy 反编译《骑砍2》官方 DLL。将反编译出的所有 `.cs` 文件放置于 `dist/assets/Source/` 目录中。
-- **XML 数据**: 将游戏目录（如 `Modules/Native/ModuleData` 等）中的 XML 配置文件，放置于 `dist/assets/Xmls/` 目录中。
+### 4. 导入游戏数据
 
-3. 构建索引
+- **C# 源代码**：使用 ILSpy 反编译游戏 DLL，将生成的“C# project (*.csproj)”项目文件放入 `dist/assets/Source/`。
+- **XML 数据**：将游戏 `Modules` 目录（如 `Native/ModuleData` 等）下的 XML 配置文件放入 `dist/assets/Xmls/`。
 
-数据准备完毕后，运行以下命令生成 SQLite 索引数据库：
+### 5. 构建索引
 
-```sh
+数据准备就绪后，运行以下命令生成本地 SQLite 数据库：
+```bash
 bun run src/scripts/index-csharp.ts
 bun run src/scripts/index-xml.ts
-bun run build
+bun run start
 ```
 
-4. 添加这个 MCP 服务器
+---
 
-**以VS Code 中搭配 Cline 插件为例**
-1.打开 VS Code，搜索cline并安装。
+## 🤖 接入 AI (以 VS Code + Cline 为例)
 
-正常登录，找到底部的Manage MCP Servers，点击⚙️打开 cline_mcp_settings.json 文件。
+1. 打开 VS Code 中的 Cline 插件。
+2. 点击底部的 **Manage MCP Servers**。
+3. 在 `cline_mcp_settings.json` 中添加配置（**请根据你的实际存放路径修改**）：
 
-在该文件中添加以下配置：
+4.请记得保存
+
 ```json
 {
   "mcpServers": {
     "bannerlord-sage": {
       "command": "bun",
-      "args": ["run", "你的路径/BannerlordSage/src/stdio.ts"]
+      "args": ["run", "D:/BannerlordSage/src/stdio.ts"]
     }
   }
 }
 ```
-## 环境依赖
+如果显示
 
-- Bun 运行时
-- Ripgrep
+<img width="357" height="85" alt="image" src="https://github.com/user-attachments/assets/8a43f91f-2cb3-42fb-9e14-f66a54fedc82" />
 
-## 本地调试
+则配置完成
 
-```sh
-bun run start # stdio
-```
+---
