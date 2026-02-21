@@ -21,19 +21,21 @@ async function main() {
   const insert = db.prepare('INSERT OR REPLACE INTO xml_data (name, type, content, filePath) VALUES ($name, $type, $content, $path)')
   const glob = new Glob('**/*.xml')
 
+  let fileCount = 0
+
   for await (const path of glob.scan({ cwd: defsPath })) {
     const text = await file(join(defsPath, path)).text()
-    // 简单的解析逻辑，实际可根据骑砍 XML 结构优化
     insert.run({
       $name: path.split('/').pop() || path,
       $type: 'XML_FILE',
       $content: text,
       $path: path
     })
+    fileCount++
   }
   
   db.close()
-  console.log('XML 索引完成！')
+  console.log(`XML 索引完成！共处理了 ${fileCount} 个文件。`)
 }
 
 main().catch(console.error)
