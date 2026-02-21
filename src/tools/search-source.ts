@@ -13,7 +13,7 @@ export async function searchSource(sandbox: PathSandbox, query: string, caseSens
   args.push('-e', query)
 
   try {
-    const res = await $`cd ${sandbox.basePath} && rg ${args} .`.text()
+    const res = await $`rg ${args} .`.cwd(sandbox.basePath).text()
     const result = res.trim()
     
     if (result.length === 0) return { content: [{ type: 'text' as const, text: '未找到结果。' }] }
