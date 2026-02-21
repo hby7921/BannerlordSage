@@ -32,11 +32,11 @@ BannerlordSage 支持本地部署的 stdio 传输。
 bun install
 ```
 
-2. 准备游戏数据（关键步骤）
+2. 准备游戏数据
 
 在项目根目录下，确保存在以下目录结构，并将游戏文件放入对应位置：
 
-- **C# 源代码**: 使用 ILdnspy 反编译《骑砍2》官方 DLL。将反编译出的所有 `.cs` 文件放置于 `dist/assets/Source/` 目录中。
+- **C# 源代码**: 使用 ILSpy 反编译《骑砍2》官方 DLL。将反编译出的所有 `.cs` 文件放置于 `dist/assets/Source/` 目录中。
 - **XML 数据**: 将游戏目录（如 `Modules/Native/ModuleData` 等）中的 XML 配置文件，放置于 `dist/assets/Xmls/` 目录中。
 
 3. 构建索引
@@ -54,7 +54,7 @@ bun run build
 **以VS Code 中搭配 Cline 插件为例**
 1.打开 VS Code，搜索cline并安装。
 
-找到并点击 MCP Settings， cline_mcp_settings.json 文件。
+正常登录，找到底部的Manage MCP Servers，点击⚙️打开 cline_mcp_settings.json 文件。
 
 在该文件中添加以下配置：
 ```json
@@ -67,13 +67,6 @@ bun run build
   }
 }
 ```
-
-**Gemini CLI**
-
-```sh
-gemini mcp add bannerlord-sage bun run /你的路径/BannerlordSage/src/stdio.ts
-```
-
 ## 环境依赖
 
 - Bun 运行时
