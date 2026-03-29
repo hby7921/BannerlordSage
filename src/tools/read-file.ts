@@ -1,20 +1,45 @@
-// src/tools/read-file.ts
-import { file } from 'bun'
 import { PathSandbox } from '../utils/path-sandbox'
+import { renderAiTextReport } from '../utils/ai-text'
+import { readTextFileSlice } from '../utils/text-file-cache'
 
-export async function readFile(sandbox: PathSandbox, relativePath: string, startLine: number = 0, lineCount: number = 400) {
+export async function readFile(
+  sandbox: PathSandbox,
+  relativePath: string,
+  startLine: number = 0,
+  lineCount: number = 400
+) {
   try {
     const fullPath = sandbox.validateAndResolve(relativePath)
-    const content = await file(fullPath).text()
-    const allLines = content.split(/\r?\n/)
-    
-    const endLine = Math.min(startLine + lineCount, allLines.length)
-    const output = allLines.slice(startLine, endLine).join('\n')
+    const slice = await readTextFileSlice(fullPath, startLine, lineCount)
+    const text = renderAiTextReport(
+      'file_read',
+      'query_relative_path',
+      relativePath,
+      [
+        {
+          header: 'file_slice',
+          fields: [
+            { key: 'resolved_path', value: relativePath },
+            { key: 'start_line_0based', value: startLine },
+            { key: 'requested_line_count', value: lineCount },
+            { key: 'returned_line_count', value: slice.endLineExclusive - startLine },
+            { key: 'end_line_exclusive_0based', value: slice.endLineExclusive },
+            { key: 'has_more', value: slice.hasMore ? 'true' : 'false' },
+          ],
+          multilineFields: [{ key: 'file_content', value: slice.text }],
+        },
+      ]
+    )
 
     return {
-      content: [{ type: 'text' as const, text: output + (endLine < allLines.length ? `\n\n[提示] 文件未读完，可从第 ${endLine} 行继续读取。` : '') }]
+      content: [
+        {
+          type: 'text' as const,
+          text,
+        },
+      ],
     }
-  } catch (error) {
-    throw new Error(`无法读取文件: ${relativePath}`)
+  } catch {
+    throw new Error(`Failed to read file: ${relativePath}`)
   }
 }

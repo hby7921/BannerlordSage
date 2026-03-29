@@ -1,16 +1,33 @@
-// src/stdio.ts
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
-import { closeDb } from './utils/db'
 import { server } from './server'
+import { closeDb } from './utils/db'
+import { getInitializationReadiness, getInitializationStatus } from './utils/runtime-check'
 
-async function main() {
+export async function main() {
+  const readiness = await getInitializationReadiness()
+  if (!readiness.ready) {
+    const status = await getInitializationStatus()
+    console.error('BannerlordSage has not been initialized yet.')
+    console.error(
+      [
+        `- Active game profile: ${status.gameId}`,
+        `- Decompiled source files: ${status.sourceFiles}`,
+        `- Imported XML files: ${status.xmlFiles}`,
+        `- SQLite index present: ${status.dbExists ? 'yes' : 'no'}`,
+        '',
+        `Run \`bun run setup -- --game ${status.gameId}\` first to import game assets, decompile DLLs, and build the indexes.`,
+      ].join('\n')
+    )
+    process.exit(1)
+  }
+
   const transport = new StdioServerTransport()
   await server.connect(transport)
 
-  console.error('🚀 BannerlordSage MCP 启动成功！正在等待 AI 连接...')
+  console.error('BannerlordSage MCP is ready and waiting for a client connection.')
 
   const cleanup = () => {
-    console.error('正在关闭服务器...')
+    console.error('Shutting down BannerlordSage...')
     closeDb()
     process.exit(0)
   }
@@ -19,9 +36,9 @@ async function main() {
   process.on('SIGTERM', cleanup)
 }
 
-try {
-  main()
-} catch (error) {
-  console.error('致命错误:', error)
-  process.exit(1)
+if (import.meta.main) {
+  main().catch(error => {
+    console.error('Fatal startup error:', error)
+    process.exit(1)
+  })
 }

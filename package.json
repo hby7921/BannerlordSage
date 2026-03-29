@@ -1,17 +1,40 @@
 {
   "name": "bannerlord-sage",
-  "version": "0.1.0",
+  "version": "0.2.0",
+  "description": "MCP server for Mount & Blade II: Bannerlord modding, reverse engineering, and local data indexing.",
+  "license": "MIT",
+  "keywords": [
+    "mcp",
+    "bannerlord",
+    "mount-and-blade",
+    "modding",
+    "reverse-engineering",
+    "bun"
+  ],
   "main": "src/stdio.ts",
   "type": "module",
   "scripts": {
-    "start": "bun run src/stdio.ts"
+    "start": "bun run src/entrypoints/bannerlord-stdio.ts",
+    "start:bannerlord": "bun run src/entrypoints/bannerlord-stdio.ts",
+    "start:bannerlord:full": "bun run src/entrypoints/bannerlord-full-stdio.ts",
+    "setup": "bun run src/scripts/setup.ts",
+    "setup:bannerlord": "bun run src/entrypoints/bannerlord-setup.ts",
+    "report:scopes": "bun run src/scripts/report-scopes.ts",
+    "smoke:release": "bun run src/scripts/smoke-release.ts",
+    "verify:bannerlord": "bun run src/scripts/verify-bannerlord.ts",
+    "verify:bannerlord:full": "bun run src/scripts/verify-bannerlord.ts -- --full",
+    "verify:bannerlord:full:clean": "bun run src/scripts/verify-bannerlord.ts -- --full --clean",
+    "index:csharp": "bun run src/scripts/index-csharp.ts",
+    "index:mod-source": "bun run src/scripts/index-mod-source.ts",
+    "index:xml": "bun run src/scripts/index-xml.ts",
+    "index:gameplay": "bun run src/scripts/index-bannerlord-gameplay.ts"
   },
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.25.3",
-    "fast-xml-parser": "^5.3.4",
+    "@modelcontextprotocol/sdk": "^1.26.0",
+    "fast-xml-parser": "^5.3.7",
     "zod": "^4.3.6"
   },
   "devDependencies": {
-    "@types/bun": "^1.3.8"
+    "@types/bun": "^1.3.9"
   }
 }

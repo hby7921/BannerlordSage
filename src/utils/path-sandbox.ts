@@ -1,22 +1,21 @@
-// src/utils/path-sandbox.ts
-import { join } from 'path'
+import { isAbsolute, relative, resolve } from 'node:path'
 import { root } from './env'
 
 export class PathSandbox {
   readonly #basePath: string
 
   constructor(basePath: string) {
-    this.#basePath = join(root, basePath)
+    this.#basePath = isAbsolute(basePath) ? resolve(basePath) : resolve(root, basePath)
   }
 
   validateAndResolve(relativePath: string): string {
-    const fullPath = join(this.#basePath, relativePath)
+    const fullPath = resolve(this.#basePath, relativePath)
+    const rel = relative(this.#basePath, fullPath)
 
-    if (!fullPath.startsWith(this.#basePath)) {
-      throw new Error(
-        `路径越界检测: "${relativePath}" 试图跳出安全的基础目录`
-      )
+    if (rel.startsWith('..')) {
+      throw new Error(`Path escapes the sandbox root: "${relativePath}"`)
     }
+
     return fullPath
   }
 
