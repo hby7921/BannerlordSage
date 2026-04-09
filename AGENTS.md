@@ -108,6 +108,51 @@ Stronger local validation:
 
 - `bun run verify:bannerlord -- --game-dir "<BANNERLORD_GAME_DIR>"`
 
+## Project Memory Workflow
+
+Use these tools deliberately:
+
+- `project_memory_wakeup`
+- `project_memory_search`
+- `project_memory_add`
+- `project_memory_capture_session`
+- `project_memory_recent`
+- `project_memory_invalidate`
+
+Default operating rules for AI agents:
+
+1. At the start of a new task or resumed thread, call `project_memory_wakeup` for the active workspace before making assumptions.
+2. Before answering questions about past decisions, prior fixes, user preferences, rejected approaches, or ongoing task state, call `project_memory_search` first.
+3. Store `decision`, `pitfall`, and `preference` memories only when they are likely to matter again.
+4. Use `project_memory_add` for one important entry.
+5. Near the end of a meaningful task, prefer `project_memory_capture_session` over a burst of manual single-entry writes.
+6. After a task completes, store one short `session` memory only if the session produced reusable knowledge that would matter in a future thread.
+7. When a previous conclusion is no longer true, call `project_memory_invalidate` on the old memory instead of silently adding a conflicting replacement.
+
+What to store:
+
+- decisions with rationale
+- pitfalls with symptom and fix
+- user preferences that are likely to recur
+- durable TODOs or follow-up constraints
+- release or validation findings that future sessions need
+
+What not to store:
+
+- temporary shell output
+- large code dumps
+- facts already covered by the indexed game data or source tools
+- obvious one-off steps with no reuse value
+- speculative ideas that were not acted on
+
+Quality bar for each memory:
+
+- Keep the `summary` to one line.
+- Keep `text` concrete and self-contained.
+- Prefer one memory per conclusion.
+- Use `workspace`, `topic`, and `kind` consistently.
+- Add `source` when a file, issue, or session label would help future lookup.
+
 ## If You Are An AI Agent
 
 - Prefer using the repo's real scripts instead of inventing new setup steps

@@ -96,6 +96,17 @@ export async function bannerlordIndexStatus(gameId?: string) {
           values: ['bannerlord_doctor', 'bannerlord_index_status'],
         },
         {
+          key: 'project_memory_tools',
+          values: [
+            'project_memory_add',
+            'project_memory_capture_session',
+            'project_memory_search',
+            'project_memory_recent',
+            'project_memory_wakeup',
+            'project_memory_invalidate',
+          ],
+        },
+        {
           key: 'authoring_tools',
           values: toolsetMode === 'full' ? ['create_mod_workspace', 'generate_xslt_patch'] : [],
         },

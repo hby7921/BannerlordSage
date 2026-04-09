@@ -3,6 +3,12 @@ export type BannerlordToolsetMode = 'query-first' | 'full'
 export const QUERY_FIRST_BANNERLORD_TOOL_NAMES = [
   'bannerlord_doctor',
   'bannerlord_index_status',
+  'project_memory_add',
+  'project_memory_capture_session',
+  'project_memory_search',
+  'project_memory_recent',
+  'project_memory_wakeup',
+  'project_memory_invalidate',
   'mod_source_status',
   'index_mod_source',
   'search_mod_source',

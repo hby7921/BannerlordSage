@@ -21,6 +21,12 @@ import { indexModSource } from './tools/index-mod-source'
 import { listDirectory } from './tools/list-directory'
 import { listModDirectory } from './tools/list-mod-directory'
 import { modSourceStatus } from './tools/mod-source-status'
+import { projectMemoryAdd } from './tools/project-memory-add'
+import { projectMemoryCaptureSession } from './tools/project-memory-capture-session'
+import { projectMemoryInvalidate } from './tools/project-memory-invalidate'
+import { projectMemoryRecent } from './tools/project-memory-recent'
+import { projectMemorySearch } from './tools/project-memory-search'
+import { projectMemoryWakeup } from './tools/project-memory-wakeup'
 import { readCsharpType } from './tools/read-csharp-type'
 import { readFile } from './tools/read-file'
 import { readGauntletUi } from './tools/read-gauntlet-ui'
@@ -87,6 +93,159 @@ server.registerTool(
     },
   },
   async () => await bannerlordIndexStatus('bannerlord'),
+)
+
+server.registerTool(
+  'project_memory_add',
+  {
+    title: 'Add Project Memory',
+    description:
+      'Use this to store a durable project memory such as a decision, pitfall, preference, todo, or session outcome. This is the BannerlordSage-native memory layer for cross-session continuity.',
+    inputSchema: {
+      text: z.string().describe('The raw memory text to preserve. Prefer verbatim reasoning, decisions, and concrete findings.'),
+      workspace: z
+        .string()
+        .optional()
+        .describe('Optional project or workspace scope, such as bannerlordsage or a specific mod name. Defaults to bannerlordsage.'),
+      topic: z.string().optional().describe('Optional topic bucket, such as indexing, docs, harmony, release, or xml.'),
+      kind: z
+        .string()
+        .optional()
+        .describe('Optional memory kind such as decision, pitfall, preference, todo, session, or note.'),
+      summary: z.string().optional().describe('Optional one-line summary for quick scanning.'),
+      source: z.string().optional().describe('Optional source reference such as a file path, issue id, or session label.'),
+      tags: z.array(z.string()).optional().describe('Optional short tags for filtering and recall.'),
+      importance: z.number().optional().default(3).describe('Importance from 1 to 5. Higher values are better wake-up candidates.'),
+    },
+    annotations: {
+      readOnlyHint: false,
+      openWorldHint: false,
+    },
+  },
+  async ({ text, workspace, topic, kind, summary, source, tags, importance }) =>
+    await projectMemoryAdd(text, workspace, topic, kind, summary, source, tags, importance),
+)
+
+server.registerTool(
+  'project_memory_capture_session',
+  {
+    title: 'Capture Session Memory',
+    description:
+      'Use this near the end of a meaningful task to batch-store the durable conclusions from the session. It is the preferred write path for decisions, pitfalls, preferences, todos, and the concise session summary.',
+    inputSchema: {
+      workspace: z
+        .string()
+        .optional()
+        .describe('Optional project or workspace scope, such as bannerlordsage or a specific mod name. Defaults to bannerlordsage.'),
+      topic: z.string().optional().describe('Optional topic bucket such as memory, indexing, harmony, validation, or docs.'),
+      source: z.string().optional().describe('Optional source reference such as a file path, issue id, or session label.'),
+      summary: z.string().optional().describe('Optional concise session summary for future wake-up context.'),
+      decisions: z.array(z.string()).optional().describe('Durable design or implementation decisions from this session.'),
+      pitfalls: z.array(z.string()).optional().describe('Confirmed bugs, traps, compatibility hazards, or rejected paths worth remembering.'),
+      preferences: z.array(z.string()).optional().describe('Stable user or project preferences made explicit in this session.'),
+      todos: z.array(z.string()).optional().describe('Durable follow-up tasks or pending constraints that should survive context loss.'),
+      notes: z.array(z.string()).optional().describe('Other reusable notes from this session that do not fit the stricter categories.'),
+      sessionImportance: z.number().optional().default(3).describe('Importance from 1 to 5 for the optional session summary entry.'),
+    },
+    annotations: {
+      readOnlyHint: false,
+      openWorldHint: false,
+    },
+  },
+  async ({ workspace, topic, source, summary, decisions, pitfalls, preferences, todos, notes, sessionImportance }) =>
+    await projectMemoryCaptureSession(
+      workspace,
+      topic,
+      source,
+      summary,
+      decisions,
+      pitfalls,
+      preferences,
+      todos,
+      notes,
+      sessionImportance
+    ),
+)
+
+server.registerTool(
+  'project_memory_search',
+  {
+    title: 'Search Project Memory',
+    description:
+      'Use this before answering questions about past project decisions, preferences, pitfalls, or prior session conclusions. It searches BannerlordSage-native project memory with full-text matching and metadata filters.',
+    inputSchema: {
+      query: z.string().describe('Search text describing the past decision, issue, preference, or context you want to recall.'),
+      workspace: z.string().optional().describe('Optional workspace or project filter.'),
+      topic: z.string().optional().describe('Optional topic filter.'),
+      kind: z.string().optional().describe('Optional kind filter such as decision, pitfall, or preference.'),
+      limit: z.number().optional().default(5).describe('Maximum number of memories to return.'),
+      includeInactive: z.boolean().optional().default(false).describe('When true, include invalidated memories in the results.'),
+    },
+    annotations: {
+      readOnlyHint: true,
+      openWorldHint: false,
+    },
+  },
+  async ({ query, workspace, topic, kind, limit, includeInactive }) =>
+    await projectMemorySearch(query, workspace, topic, kind, limit, includeInactive),
+)
+
+server.registerTool(
+  'project_memory_recent',
+  {
+    title: 'Recent Project Memory',
+    description:
+      'Use this to review the latest stored project memories for a workspace or topic, especially when resuming work after a break.',
+    inputSchema: {
+      workspace: z.string().optional().describe('Optional workspace or project filter.'),
+      topic: z.string().optional().describe('Optional topic filter.'),
+      kind: z.string().optional().describe('Optional kind filter.'),
+      limit: z.number().optional().default(8).describe('Maximum number of memories to return.'),
+      includeInactive: z.boolean().optional().default(false).describe('When true, include invalidated memories.'),
+    },
+    annotations: {
+      readOnlyHint: true,
+      openWorldHint: false,
+    },
+  },
+  async ({ workspace, topic, kind, limit, includeInactive }) =>
+    await projectMemoryRecent(workspace, topic, kind, limit, includeInactive),
+)
+
+server.registerTool(
+  'project_memory_wakeup',
+  {
+    title: 'Project Memory Wake-up',
+    description:
+      'Use this at the start of a coding session to load the most important active project memories for a workspace, biased toward decisions, pitfalls, and preferences.',
+    inputSchema: {
+      workspace: z.string().optional().describe('Optional workspace or project filter.'),
+      limit: z.number().optional().default(8).describe('Maximum number of wake-up memories to return.'),
+    },
+    annotations: {
+      readOnlyHint: true,
+      openWorldHint: false,
+    },
+  },
+  async ({ workspace, limit }) => await projectMemoryWakeup(workspace, limit),
+)
+
+server.registerTool(
+  'project_memory_invalidate',
+  {
+    title: 'Invalidate Project Memory',
+    description:
+      'Use this when an older project memory is no longer valid because the design changed, a decision was reversed, or a previous conclusion was disproven.',
+    inputSchema: {
+      memoryId: z.string().describe('Exact memory id returned by the project memory tools.'),
+      reason: z.string().optional().describe('Optional reason explaining why the memory is no longer valid.'),
+    },
+    annotations: {
+      readOnlyHint: false,
+      openWorldHint: false,
+    },
+  },
+  async ({ memoryId, reason }) => await projectMemoryInvalidate(memoryId, reason),
 )
 
 server.registerTool(

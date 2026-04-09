@@ -21,6 +21,7 @@
     "setup:bannerlord": "bun run src/entrypoints/bannerlord-setup.ts",
     "report:scopes": "bun run src/scripts/report-scopes.ts",
     "smoke:release": "bun run src/scripts/smoke-release.ts",
+    "verify:memory": "bun run src/scripts/verify-project-memory.ts",
     "verify:bannerlord": "bun run src/scripts/verify-bannerlord.ts",
     "verify:bannerlord:full": "bun run src/scripts/verify-bannerlord.ts -- --full",
     "verify:bannerlord:full:clean": "bun run src/scripts/verify-bannerlord.ts -- --full --clean",

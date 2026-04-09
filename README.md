@@ -26,12 +26,12 @@ To have a coding agent (Codex, Claude, Gemini, Copilot, etc.) install and config
 
 ## Tool Overview
 
-BannerlordSage provides **28 tools** across two entrypoints:
+BannerlordSage provides **34 tools** across two entrypoints:
 
 | Entrypoint | Tools | Notes |
 |------------|-------|-------|
-| `bun run start:bannerlord` | 26 | Recommended default — query, analyze, read |
-| `bun run start:bannerlord:full` | 28 | Adds workspace creation and XSLT patch generation |
+| `bun run start:bannerlord` | 32 | Default toolset for query, analysis, mod-source work, and project memory |
+| `bun run start:bannerlord:full` | 34 | Adds workspace creation and XSLT patch generation |
 
 Basic workflow: **run setup → start MCP → let the model call tools**
 
@@ -43,6 +43,17 @@ Basic workflow: **run setup → start MCP → let the model call tools**
 |------|-------------|
 | `bannerlord_doctor` | Check module health: missing dependencies, duplicate DLLs, load order issues |
 | `bannerlord_index_status` | Check whether BannerlordSage is initialized and the local index is ready |
+
+### Project Memory
+
+| Tool | Description |
+|------|-------------|
+| `project_memory_add` | Store one project memory entry |
+| `project_memory_capture_session` | Store a session summary plus decisions, pitfalls, preferences, TODOs, and notes in one call |
+| `project_memory_search` | Search project memory before answering questions about past work |
+| `project_memory_recent` | Show recent project memory entries |
+| `project_memory_wakeup` | Load key active memory at session start |
+| `project_memory_invalidate` | Mark an old memory as inactive |
 
 ### Official Source & XML
 
@@ -113,6 +124,34 @@ Basic workflow: **run setup → start MCP → let the model call tools**
 1. `mod_source_status` — confirm the workspace
 2. `search_mod_source` — search the code
 3. `read_mod_file` / `read_mod_type` — read the details
+
+**Resume work with project memory:**
+1. `project_memory_wakeup` — load the key active context for the workspace
+2. `project_memory_search` — check whether a similar decision, pitfall, or preference already exists
+3. `project_memory_capture_session` — store the useful session output near the end of the task
+
+## Daily MCP Usage
+
+Once BannerlordSage is installed and connected to your AI client, the normal daily loop is:
+
+1. Start or resume a task and call `project_memory_wakeup`
+2. Explore official behavior with `search_source`, `read_file`, and `read_csharp_type`
+3. Explore your own mod with `mod_source_status`, `search_mod_source`, `read_mod_file`, and `read_mod_type`
+4. Use the structured query tools when you already know an in-game id
+5. Before stating project history, call `project_memory_search`
+6. Near the end of the task, call `project_memory_capture_session`
+
+## Project Memory Workflow
+
+Project memory is a local recall layer. It does not change the model's context window. It gives the agent a place to store decisions, pitfalls, preferences, and follow-up state.
+
+Use it like this:
+
+- start a resumed task with `project_memory_wakeup`
+- search memory before claiming project history
+- store only durable conclusions
+- prefer `project_memory_capture_session` near task completion
+- invalidate old memories when they are no longer true
 
 ## Installation
 
@@ -209,6 +248,7 @@ Replace `<REPO_DIR>` with the absolute path to this repository on your machine.
 bun run setup:bannerlord -- --game-dir "<BANNERLORD_GAME_DIR>"   # initialize / update index
 bun run start:bannerlord                                         # start default MCP
 bun run start:bannerlord:full                                    # start full MCP
+bun run verify:memory                                            # verify native project-memory tools
 bun run index:gameplay                                           # rebuild gameplay index only
 bun run index:mod-source -- --source-dir "<MOD_SOURCE_DIR>"     # index local mod source
 bun run verify:bannerlord -- --game-dir "<BANNERLORD_GAME_DIR>" # local regression check

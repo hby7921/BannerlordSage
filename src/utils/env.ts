@@ -31,6 +31,7 @@ export function getGamePaths(gameId = getActiveGameId()) {
     defsPath: join(assetsPath, 'Xmls'),
     sourcePath: join(assetsPath, 'Source'),
     dbPath: join(gameDistPath, `${normalizedGameId}.db`),
+    memoryDbPath: join(gameDistPath, `${normalizedGameId}-memory.db`),
     setupStatePath: join(gameDistPath, 'setup-state.json'),
     csharpAstDumpPath: join(gameDistPath, 'csharp-index.json'),
     xmlParseReportPath: join(reportsPath, 'xml-parse-report.json'),
@@ -45,5 +46,6 @@ export const versionPath = activeGamePaths.versionPath
 export const defsPath = activeGamePaths.defsPath
 export const sourcePath = activeGamePaths.sourcePath
 export const dbPath = activeGamePaths.dbPath
+export const memoryDbPath = activeGamePaths.memoryDbPath
 export const setupStatePath = activeGamePaths.setupStatePath
 export const csharpAstDumpPath = activeGamePaths.csharpAstDumpPath

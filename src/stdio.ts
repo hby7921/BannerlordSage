@@ -1,6 +1,7 @@
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import { server } from './server'
 import { closeDb } from './utils/db'
+import { closeMemoryDb } from './utils/memory-db'
 import { getInitializationReadiness, getInitializationStatus } from './utils/runtime-check'
 
 export async function main() {
@@ -29,6 +30,7 @@ export async function main() {
   const cleanup = () => {
     console.error('Shutting down BannerlordSage...')
     closeDb()
+    closeMemoryDb()
     process.exit(0)
   }
 

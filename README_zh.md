@@ -27,12 +27,12 @@
 
 ## 工具总览
 
-BannerlordSage 共提供 **28 个工具**，分两个入口：
+BannerlordSage 共提供 **34 个工具**，分两个入口：
 
 | 入口 | 工具数 | 说明 |
 |------|--------|------|
-| `bun run start:bannerlord` | 26 | 推荐默认，适合查询、分析、读取资料 |
-| `bun run start:bannerlord:full` | 28 | 额外提供工作区创建和 XSLT Patch 生成 |
+| `bun run start:bannerlord` | 32 | 默认工具集，适合查询、分析、本地 mod 工作和项目记忆 |
+| `bun run start:bannerlord:full` | 34 | 额外提供工作区创建和 XSLT Patch 生成 |
 
 基本使用流程：**运行 setup → 启动 MCP → 让模型调用工具**
 
@@ -44,6 +44,17 @@ BannerlordSage 共提供 **28 个工具**，分两个入口：
 |------|----------|
 | `bannerlord_doctor` | 检查本地 Bannerlord 安装的模块健康状况：依赖缺失、重复 DLL、加载顺序异常等 |
 | `bannerlord_index_status` | 查看 BannerlordSage 当前是否初始化完成、本地索引是否可用 |
+
+### 项目记忆
+
+| 工具 | 功能说明 |
+|------|----------|
+| `project_memory_add` | 存一条项目记忆 |
+| `project_memory_capture_session` | 一次性保存本轮会话的摘要、决策、踩坑、偏好、TODO 和备注 |
+| `project_memory_search` | 回答项目历史问题前先查项目记忆 |
+| `project_memory_recent` | 查看最近的项目记忆 |
+| `project_memory_wakeup` | 会话开始时加载关键记忆 |
+| `project_memory_invalidate` | 将旧记忆标记为失效 |
 
 ### 官方源码与 XML
 
@@ -114,6 +125,34 @@ BannerlordSage 共提供 **28 个工具**，分两个入口：
 1. `mod_source_status` 确认工作区
 2. `search_mod_source` 搜索代码
 3. `read_mod_file` / `read_mod_type` 读取详情
+
+**带项目记忆地继续工作：**
+1. `project_memory_wakeup` 先加载关键上下文
+2. `project_memory_search` 确认以前是否已有类似决策、踩坑或偏好
+3. `project_memory_capture_session` 在任务结束前写入本轮值得保留的结论
+
+## 日常怎么用这个 MCP
+
+当 BannerlordSage 安装好并接到你的 AI 客户端后，日常工作流可以按这个顺序走：
+
+1. 开始新任务或恢复旧任务时先调用 `project_memory_wakeup`
+2. 查官方行为时优先用 `search_source`、`read_file`、`read_csharp_type`
+3. 查你自己的 Mod 源码时优先用 `mod_source_status`、`search_mod_source`、`read_mod_file`、`read_mod_type`
+4. 已知游戏内 ID 时直接用结构化查询工具
+5. 涉及“之前怎么定的”时先调用 `project_memory_search`
+6. 任务快结束时调用 `project_memory_capture_session`
+
+## 项目记忆工作流
+
+项目记忆是一个本地回查层。它不会改变模型本身的上下文长度，只负责保存设计决策、踩坑、偏好和后续事项。
+
+默认规则：
+
+- 恢复任务时先 `project_memory_wakeup`
+- 涉及项目历史时先 `project_memory_search`
+- 只存以后还会有用的结论
+- 任务接近结束时优先用 `project_memory_capture_session`
+- 旧结论失效时及时 `project_memory_invalidate`
 
 ## 安装
 
@@ -210,6 +249,7 @@ enabled = true
 bun run setup:bannerlord -- --game-dir "<BANNERLORD_GAME_DIR>"   # 初始化/更新索引
 bun run start:bannerlord                                         # 启动默认 MCP
 bun run start:bannerlord:full                                    # 启动完整版 MCP
+bun run verify:memory                                            # 验证原生项目记忆工具
 bun run index:gameplay                                           # 单独重建玩法索引
 bun run index:mod-source -- --source-dir "<MOD_SOURCE_DIR>"     # 索引本地 Mod 源码
 bun run verify:bannerlord -- --game-dir "<BANNERLORD_GAME_DIR>" # 本机回归验证
