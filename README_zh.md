@@ -25,6 +25,11 @@
 3. 再让它按 `AI_QUICKSTART.md` 执行安装
 4. 当它询问时，提供你的 `<BANNERLORD_GAME_DIR>`
 
+## Attribution
+
+BannerlordSage 包含基于 Vortex 的 RimSage 演化而来的工作。
+项目继续使用 MIT License，详见 [`LICENSE`](./LICENSE)。
+
 ## 工具总览
 
 BannerlordSage 共提供 **34 个工具**，分两个入口：

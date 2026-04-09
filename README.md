@@ -24,6 +24,11 @@ To have a coding agent (Codex, Claude, Gemini, Copilot, etc.) install and config
 3. Tell it to follow `AI_QUICKSTART.md`
 4. Provide your `<BANNERLORD_GAME_DIR>` when asked
 
+## Attribution
+
+BannerlordSage includes work derived from RimSage by Vortex.
+The project remains under the MIT License. See [`LICENSE`](./LICENSE).
+
 ## Tool Overview
 
 BannerlordSage provides **34 tools** across two entrypoints:
