@@ -13,9 +13,11 @@ const TEST_GAME_ID = 'bannerlord-memory-smoke'
 async function main() {
   process.env.BANNERSAGE_GAME = TEST_GAME_ID
   const paths = getGamePaths(TEST_GAME_ID)
-  cleanup(paths.memoryDbPath)
-  cleanup(`${paths.memoryDbPath}-shm`)
-  cleanup(`${paths.memoryDbPath}-wal`)
+  const defaultPaths = getGamePaths('bannerlord')
+  const defaultMemoryDbExistedBefore = existsSync(defaultPaths.memoryDbPath)
+  await cleanup(paths.memoryDbPath)
+  await cleanup(`${paths.memoryDbPath}-shm`)
+  await cleanup(`${paths.memoryDbPath}-wal`)
 
   try {
     const added = await projectMemoryAdd(
@@ -89,15 +91,31 @@ async function main() {
     console.log('Project memory verification passed.')
   } finally {
     closeMemoryDb()
-    cleanup(paths.memoryDbPath)
-    cleanup(`${paths.memoryDbPath}-shm`)
-    cleanup(`${paths.memoryDbPath}-wal`)
+    if (!defaultMemoryDbExistedBefore) {
+      assert(!existsSync(defaultPaths.memoryDbPath), 'verify script must not write to default bannerlord memory DB')
+    }
+    await cleanup(paths.memoryDbPath)
+    await cleanup(`${paths.memoryDbPath}-shm`)
+    await cleanup(`${paths.memoryDbPath}-wal`)
   }
 }
 
-function cleanup(path: string) {
-  if (existsSync(path)) {
-    rmSync(path, { force: true })
+async function cleanup(path: string) {
+  for (let attempt = 0; attempt < 5; attempt += 1) {
+    if (!existsSync(path)) {
+      return
+    }
+
+    try {
+      rmSync(path, { force: true })
+      return
+    } catch (error) {
+      if (attempt === 4) {
+        throw error
+      }
+
+      await Bun.sleep(100 * (attempt + 1))
+    }
   }
 }
 

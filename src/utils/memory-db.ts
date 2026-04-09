@@ -1,13 +1,13 @@
 import { mkdirSync } from 'node:fs'
 import { dirname } from 'node:path'
 import { Database } from 'bun:sqlite'
-import { getGamePaths, normalizeGameId } from './env'
+import { getActiveGameId, getGamePaths, normalizeGameId } from './env'
 
 let memoryDb: Database | null = null
 let memoryDbPath: string | null = null
 
 export function getMemoryDb(gameId?: string): Database {
-  const resolvedGameId = normalizeGameId(gameId)
+  const resolvedGameId = normalizeGameId(gameId || getActiveGameId())
   const resolvedPath = getGamePaths(resolvedGameId).memoryDbPath
 
   if (memoryDb && memoryDbPath !== resolvedPath) {
