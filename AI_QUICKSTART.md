@@ -19,6 +19,7 @@ Your goals:
 6. Explain which server entrypoint I should use
 7. If I want my own mod source indexed, help me configure BANNERSAGE_MOD_SOURCE_DIR or workspaceRoot
 8. After setup, explain the normal daily workflow for source tools, mod-source tools, and project memory
+9. Keep the default setup behavior that indexes official/community docs and official API data unless I explicitly ask for offline setup
 
 Important constraints:
 - Do not invent local file paths

@@ -77,6 +77,80 @@ export function databaseHasColumns(path: string, tableName: string, expectedColu
   }
 }
 
+export function databaseTableRowCount(path: string, tableName: string): number {
+  const db = new Database(path, { create: false, readonly: true })
+  try {
+    const row = db
+      .query<{ count: number }, never>(
+        `
+        SELECT COUNT(*) AS count
+        FROM ${escapeSqlIdentifier(tableName)}
+      `
+      )
+      .get()
+
+    return Number(row?.count ?? 0)
+  } catch {
+    return 0
+  } finally {
+    db.close()
+  }
+}
+
+export function databaseTableRowCountWhereEquals(
+  path: string,
+  tableName: string,
+  columnName: string,
+  value: string
+): number {
+  const db = new Database(path, { create: false, readonly: true })
+  try {
+    const row = db
+      .query<{ count: number }, { $value: string }>(
+        `
+        SELECT COUNT(*) AS count
+        FROM ${escapeSqlIdentifier(tableName)}
+        WHERE ${escapeSqlIdentifier(columnName)} = $value
+      `
+      )
+      .get({ $value: value })
+
+    return Number(row?.count ?? 0)
+  } catch {
+    return 0
+  } finally {
+    db.close()
+  }
+}
+
+export function databaseTextValue(
+  path: string,
+  tableName: string,
+  keyColumnName: string,
+  keyValue: string,
+  valueColumnName: string
+): string | undefined {
+  const db = new Database(path, { create: false, readonly: true })
+  try {
+    const row = db
+      .query<{ value: string }, { $keyValue: string }>(
+        `
+        SELECT ${escapeSqlIdentifier(valueColumnName)} AS value
+        FROM ${escapeSqlIdentifier(tableName)}
+        WHERE ${escapeSqlIdentifier(keyColumnName)} = $keyValue
+        LIMIT 1
+      `
+      )
+      .get({ $keyValue: keyValue })
+
+    return typeof row?.value === 'string' ? row.value : undefined
+  } catch {
+    return undefined
+  } finally {
+    db.close()
+  }
+}
+
 function escapeSqlIdentifier(value: string): string {
   return `"${value.replaceAll('"', '""')}"`
 }

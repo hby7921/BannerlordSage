@@ -200,6 +200,8 @@ bun run setup:bannerlord -- --game-dir "<BANNERLORD_GAME_DIR>"
 
 Replace `<BANNERLORD_GAME_DIR>` with the absolute path to your local Bannerlord installation. The first run takes a while; subsequent runs are incremental.
 
+Setup also indexes public official/community documentation and official API search data by default. The docs/API data is stored in the local SQLite database, reused on later runs, and only refreshed when missing or when `--reindex-docs` is passed. Use `--skip-docs` for offline or local-only setup.
+
 Common flags:
 
 | Flag | Description |
@@ -211,7 +213,9 @@ Common flags:
 | `--xml-scope official` | Import official module XML only |
 | `--xml-scope all` | Official + all locally installed third-party module XML |
 | `--accept-disclaimer` | Skip the interactive disclaimer prompt |
-| `--clean` | Wipe and rebuild the index from scratch |
+| `--clean` | Wipe local assets and rebuild indexes from scratch, including docs/API unless `--skip-docs` is also passed |
+| `--skip-docs` | Do not download/index official docs or API docs during setup |
+| `--reindex-docs` | Force refresh official/community docs and all official API versions |
 
 ### 4. Start MCP
 
@@ -258,13 +262,13 @@ Replace `<REPO_DIR>` with the absolute path to this repository on your machine.
 ## Scripts
 
 ```bash
-bun run setup:bannerlord -- --game-dir "<BANNERLORD_GAME_DIR>"   # initialize / update index
+bun run setup:bannerlord -- --game-dir "<BANNERLORD_GAME_DIR>"   # initialize/update local and public docs indexes
 bun run start:bannerlord                                         # start default MCP
 bun run start:bannerlord:full                                    # start full MCP
 bun run verify:memory                                            # verify native project-memory tools
 bun run index:gameplay                                           # rebuild gameplay index only
-bun run index:docs                                               # index official and community docs
-bun run index:api-docs                                           # lightly index all official API symbol versions
+bun run index:docs                                               # manually refresh official and community docs
+bun run index:api-docs                                           # manually refresh official API symbol versions
 bun run index:mod-source -- --source-dir "<MOD_SOURCE_DIR>"     # index local mod source
 bun run verify:bannerlord -- --game-dir "<BANNERLORD_GAME_DIR>" # local regression check
 bun run smoke:release                                            # quick build validation

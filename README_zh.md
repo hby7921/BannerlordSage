@@ -201,6 +201,8 @@ bun run setup:bannerlord -- --game-dir "<BANNERLORD_GAME_DIR>"
 
 `<BANNERLORD_GAME_DIR>` 替换为你本机的 Bannerlord 安装路径。首次运行较慢，后续增量执行。
 
+setup 默认也会索引公开的官方教程、社区文档和官方 API 搜索数据。这些文档/API 数据会写入本地 SQLite，后续部署会复用；只有缺失或传入 `--reindex-docs` 时才会重新下载。离线或只想做本地索引时可使用 `--skip-docs`。
+
 常用参数：
 
 | 参数 | 说明 |
@@ -212,7 +214,9 @@ bun run setup:bannerlord -- --game-dir "<BANNERLORD_GAME_DIR>"
 | `--xml-scope official` | 只导入官方模块的 XML |
 | `--xml-scope all` | 官方 + 本地所有第三方模块 XML |
 | `--accept-disclaimer` | 跳过交互式免责声明 |
-| `--clean` | 清理后重新建立索引 |
+| `--clean` | 清理本地资源并重建索引；除非同时传 `--skip-docs`，也会刷新文档/API |
+| `--skip-docs` | setup 时不下载/索引官方文档和 API 文档 |
+| `--reindex-docs` | 强制刷新官方/社区文档和所有官方 API 版本 |
 
 ### 4. 启动 MCP
 
@@ -259,13 +263,13 @@ enabled = true
 ## 可用脚本
 
 ```bash
-bun run setup:bannerlord -- --game-dir "<BANNERLORD_GAME_DIR>"   # 初始化/更新索引
+bun run setup:bannerlord -- --game-dir "<BANNERLORD_GAME_DIR>"   # 初始化/更新本地和公开文档索引
 bun run start:bannerlord                                         # 启动默认 MCP
 bun run start:bannerlord:full                                    # 启动完整版 MCP
 bun run verify:memory                                            # 验证原生项目记忆工具
 bun run index:gameplay                                           # 单独重建玩法索引
-bun run index:docs                                               # 索引官方教程和社区文档
-bun run index:api-docs                                           # 轻量索引所有官方 API 版本的符号
+bun run index:docs                                               # 手动刷新官方教程和社区文档
+bun run index:api-docs                                           # 手动刷新官方 API 版本符号
 bun run index:mod-source -- --source-dir "<MOD_SOURCE_DIR>"     # 索引本地 Mod 源码
 bun run verify:bannerlord -- --game-dir "<BANNERLORD_GAME_DIR>" # 本机回归验证
 bun run smoke:release                                            # 快速验证构建产物

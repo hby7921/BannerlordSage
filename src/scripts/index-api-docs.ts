@@ -40,6 +40,7 @@ export async function buildApiDocsIndex(gameId?: string, requestedVersions: stri
   await ensureSetupDirectoriesForGame(resolvedGameId)
   const availableVersions = await fetchAvailableApiVersions()
   const versionsToIndex = resolveVersionsToIndex(availableVersions, requestedVersions)
+  const indexedAllAvailableVersions = requestedVersions.length === 0
   const indexedAt = new Date().toISOString()
   const rows: ApiEntry[] = []
 
@@ -108,6 +109,11 @@ export async function buildApiDocsIndex(gameId?: string, requestedVersions: stri
           $tokens: buildSearchTokens(entry),
         })
       }
+
+      setApiMeta(db, 'indexedAllAvailableVersions', indexedAllAvailableVersions ? 'true' : 'false')
+      setApiMeta(db, 'availableVersionCountAtIndexTime', String(availableVersions.length))
+      setApiMeta(db, 'indexedVersionCount', String(versionsToIndex.length))
+      setApiMeta(db, 'indexedAt', indexedAt)
     })
     transaction(rows)
   } finally {
@@ -256,6 +262,13 @@ function resetApiSchema(db: Database): void {
   db.run('DROP TABLE IF EXISTS bannerlord_api_entries_fts;')
   db.run('DROP TABLE IF EXISTS bannerlord_api_entries;')
   db.run('DROP TABLE IF EXISTS bannerlord_api_versions;')
+  db.run('DROP TABLE IF EXISTS bannerlord_api_index_meta;')
+  db.run(`
+    CREATE TABLE bannerlord_api_index_meta (
+      key TEXT PRIMARY KEY,
+      value TEXT NOT NULL
+    );
+  `)
   db.run(`
     CREATE TABLE bannerlord_api_versions (
       version TEXT PRIMARY KEY,
@@ -292,6 +305,17 @@ function resetApiSchema(db: Database): void {
   db.run('CREATE INDEX bannerlord_api_entries_version_idx ON bannerlord_api_entries(version);')
   db.run('CREATE INDEX bannerlord_api_entries_section_idx ON bannerlord_api_entries(section);')
   db.run('CREATE INDEX bannerlord_api_entries_title_idx ON bannerlord_api_entries(title);')
+}
+
+function setApiMeta(db: Database, key: string, value: string): void {
+  db.prepare(`
+    INSERT INTO bannerlord_api_index_meta (key, value)
+    VALUES ($key, $value)
+    ON CONFLICT(key) DO UPDATE SET value = excluded.value
+  `).run({
+    $key: key,
+    $value: value,
+  })
 }
 
 async function fetchText(url: string): Promise<string> {

@@ -21,9 +21,19 @@ import {
   type SetupState,
 } from '../utils/bannerlord-setup'
 import { DEFAULT_GAME_ID, getGamePaths } from '../utils/env'
-import { databaseHasColumns, databaseHasTable } from '../utils/db'
+import {
+  databaseHasColumns,
+  databaseHasTable,
+  databaseTableRowCount,
+  databaseTableRowCountWhereEquals,
+  databaseTextValue,
+} from '../utils/db'
 import { getGameProfile, listGameProfiles, type DllImportScope, type XmlImportScope } from '../utils/game-profiles'
 import { writeRuntimeRevision } from '../utils/runtime-revision'
+
+const OFFICIAL_DOCS_SOURCE_ID = 'official_moddocs'
+const COMMUNITY_DOCS_SOURCE_ID = 'community_modding_docs'
+const API_INDEXED_ALL_META_KEY = 'indexedAllAvailableVersions'
 
 type CliArgs = {
   game: string
@@ -37,6 +47,8 @@ type CliArgs = {
   clean: boolean
   skipDecompile: boolean
   skipXml: boolean
+  skipDocs: boolean
+  reindexDocs: boolean
   reindex: boolean
   decompileJobs?: number
 }
@@ -232,6 +244,8 @@ export async function runSetup(args = process.argv.slice(2)): Promise<{ runtimeC
   let shouldBuildCsharpIndex = false
   let shouldBuildXmlIndex = false
   let shouldBuildGameplayIndex = false
+  let docsIndexed = false
+  let apiDocsIndexed = false
   if (!cli.skipXml) {
     console.log(`Copying ${cli.xmlScope} XML data into ${gamePaths.defsPath}...`)
     const xmlSummary = await copyGameXmls(cli.game, gameDir, cli.clean, cli.xmlScope, state.xmlFiles)
@@ -315,6 +329,82 @@ export async function runSetup(args = process.argv.slice(2)): Promise<{ runtimeC
     }
   }
 
+  if (!cli.skipDocs) {
+    const dbExists = await fileExists(gamePaths.dbPath)
+    const docsPageCount =
+      dbExists && databaseHasTable(gamePaths.dbPath, 'bannerlord_docs_pages')
+        ? databaseTableRowCount(gamePaths.dbPath, 'bannerlord_docs_pages')
+        : 0
+    const officialDocsPageCount =
+      dbExists && databaseHasTable(gamePaths.dbPath, 'bannerlord_docs_pages')
+        ? databaseTableRowCountWhereEquals(
+            gamePaths.dbPath,
+            'bannerlord_docs_pages',
+            'source',
+            OFFICIAL_DOCS_SOURCE_ID
+          )
+        : 0
+    const communityDocsPageCount =
+      dbExists && databaseHasTable(gamePaths.dbPath, 'bannerlord_docs_pages')
+        ? databaseTableRowCountWhereEquals(
+            gamePaths.dbPath,
+            'bannerlord_docs_pages',
+            'source',
+            COMMUNITY_DOCS_SOURCE_ID
+          )
+        : 0
+    const apiVersionCount =
+      dbExists && databaseHasTable(gamePaths.dbPath, 'bannerlord_api_versions')
+        ? databaseTableRowCount(gamePaths.dbPath, 'bannerlord_api_versions')
+        : 0
+    const apiEntryCount =
+      dbExists && databaseHasTable(gamePaths.dbPath, 'bannerlord_api_entries')
+        ? databaseTableRowCount(gamePaths.dbPath, 'bannerlord_api_entries')
+        : 0
+    const indexedAllApiVersions =
+      dbExists &&
+      databaseHasTable(gamePaths.dbPath, 'bannerlord_api_index_meta') &&
+      databaseTextValue(
+        gamePaths.dbPath,
+        'bannerlord_api_index_meta',
+        'key',
+        API_INDEXED_ALL_META_KEY,
+        'value'
+      ) === 'true'
+    const hasDocsIndex =
+      dbExists &&
+      docsPageCount > 0 &&
+      officialDocsPageCount > 0 &&
+      communityDocsPageCount > 0 &&
+      databaseHasTable(gamePaths.dbPath, 'bannerlord_docs_fts')
+    const hasApiDocsIndex =
+      dbExists &&
+      apiVersionCount > 0 &&
+      apiEntryCount > 0 &&
+      indexedAllApiVersions &&
+      databaseHasTable(gamePaths.dbPath, 'bannerlord_api_entries_fts')
+
+    if (cli.clean || cli.reindexDocs || !hasDocsIndex) {
+      console.log('Indexing official and community Bannerlord docs from public websites...')
+      const { buildDocsIndex } = await import('./index-docs')
+      await buildDocsIndex(cli.game)
+      docsIndexed = true
+    } else {
+      console.log('Skipping docs index because it is already present.')
+    }
+
+    if (cli.clean || cli.reindexDocs || !hasApiDocsIndex) {
+      console.log('Indexing official Bannerlord API docs from public Doxygen search data...')
+      const { buildApiDocsIndex } = await import('./index-api-docs')
+      await buildApiDocsIndex(cli.game)
+      apiDocsIndexed = true
+    } else {
+      console.log('Skipping official API docs index because it is already present.')
+    }
+  } else {
+    console.log('Skipping docs/API indexing because --skip-docs was passed.')
+  }
+
   const initializedAt = new Date().toISOString()
   state.initializedAt = initializedAt
   await saveSetupStateForGame(cli.game, state)
@@ -326,6 +416,8 @@ export async function runSetup(args = process.argv.slice(2)): Promise<{ runtimeC
     shouldBuildCsharpIndex ||
     shouldBuildXmlIndex ||
     shouldBuildGameplayIndex ||
+    docsIndexed ||
+    apiDocsIndexed ||
     versionChanged ||
     !(await fileExists(gamePaths.versionPath))
 
@@ -345,6 +437,8 @@ export async function runSetup(args = process.argv.slice(2)): Promise<{ runtimeC
   console.log(`DLLs skipped by MD5: ${skippedDllsByMd5.length}`)
   console.log(`DLL scope: ${cli.dllScope}`)
   console.log(`XML scope: ${cli.xmlScope}`)
+  console.log(`Docs indexed: ${docsIndexed ? 'true' : 'false'}`)
+  console.log(`API docs indexed: ${apiDocsIndexed ? 'true' : 'false'}`)
   if (failedDlls.length > 0) {
     console.log(`DLLs skipped after failed decompile: ${failedDlls.length}`)
   }
@@ -382,6 +476,8 @@ function parseCliArgs(argv: string[]): CliArgs {
     clean: false,
     skipDecompile: false,
     skipXml: false,
+    skipDocs: false,
+    reindexDocs: false,
     reindex: true,
     decompileJobs: undefined,
   }
@@ -486,6 +582,16 @@ function parseCliArgs(argv: string[]): CliArgs {
       continue
     }
 
+    if (arg === '--skip-docs') {
+      result.skipDocs = true
+      continue
+    }
+
+    if (arg === '--reindex-docs') {
+      result.reindexDocs = true
+      continue
+    }
+
     if (arg === '--decompile-jobs' && next) {
       result.decompileJobs = parsePositiveInteger(next, '--decompile-jobs')
       i += 1
@@ -532,11 +638,13 @@ Options:
                              Choose the DLL tier: curated core, modding-useful, full official, or everything.
   --xml-scope <official|all> Import only official XML modules by default, or include community mods.
   --accept-disclaimer        Non-interactive confirmation of the disclaimer.
-  --clean                    Remove previous copied/decompiled outputs before setup.
-  --skip-decompile           Only refresh XML and indexes.
-  --skip-xml                 Only refresh decompiled source and indexes.
+  --clean                    Remove previous copied/decompiled outputs before setup; also refresh docs/API unless --skip-docs.
+  --skip-decompile           Only refresh XML, docs/API, and indexes.
+  --skip-xml                 Only refresh decompiled source, docs/API, and indexes.
+  --skip-docs                Do not download/index official docs or API docs during setup.
+  --reindex-docs             Force refresh official/community docs and all official API versions.
   --decompile-jobs <count>   Parallel ILSpy decompile workers. Default: auto (1 on single-core, otherwise 2).
-  --no-index                 Skip SQLite rebuild after copying assets.
+  --no-index                 Skip local source/XML/gameplay SQLite rebuild after copying assets.
 
 Available profiles:
 ${profiles.map(profile => `  - ${profile.id}: ${profile.displayName}`).join('\n')}

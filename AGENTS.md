@@ -48,6 +48,7 @@ If the user wants a normal install, use this order:
    - `bun install`
 3. Run Bannerlord setup:
    - `bun run setup:bannerlord -- --game-dir "<BANNERLORD_GAME_DIR>"`
+   - setup indexes local decompiled source/XML plus public official/community docs and official API search data by default; use `--skip-docs` only for offline setup
 4. Start the MCP server:
    - `bun run start:bannerlord`
 
@@ -93,6 +94,8 @@ If the workspace contains `src/`, the repo automatically uses that as the effect
 - `bun run start:bannerlord`
 - `bun run start:bannerlord:full`
 - `bun run index:gameplay`
+- `bun run index:docs`
+- `bun run index:api-docs`
 - `bun run index:mod-source -- --source-dir "<MOD_SOURCE_DIR>"`
 - `bun run verify:bannerlord -- --game-dir "<BANNERLORD_GAME_DIR>"`
 - `bun run smoke:release`
