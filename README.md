@@ -31,12 +31,12 @@ The project remains under the MIT License. See [`LICENSE`](./LICENSE).
 
 ## Tool Overview
 
-BannerlordSage provides **34 tools** across two entrypoints:
+BannerlordSage provides **37 tools** across two entrypoints:
 
 | Entrypoint | Tools | Notes |
 |------------|-------|-------|
-| `bun run start:bannerlord` | 32 | Default toolset for query, analysis, mod-source work, and project memory |
-| `bun run start:bannerlord:full` | 34 | Adds workspace creation and XSLT patch generation |
+| `bun run start:bannerlord` | 35 | Default toolset for query, analysis, mod-source work, and project memory |
+| `bun run start:bannerlord:full` | 37 | Adds workspace creation and XSLT patch generation |
 
 Basic workflow: **run setup → start MCP → let the model call tools**
 
@@ -71,6 +71,14 @@ Basic workflow: **run setup → start MCP → let the model call tools**
 | `search_xml` | Search official XML files for an ID, field, token, or concept |
 | `resolve_localization` | Resolve in-game localization tokens like `{=abc123}` to actual text |
 | `read_gauntlet_ui` | Inspect Gauntlet UI file bindings and interaction logic |
+
+### Official/Community Docs & API
+
+| Tool | Description |
+|------|-------------|
+| `search_bannerlord_knowledge` | Natural-language unified entrypoint; use first when the user says they want to make a mod, feature, patch, UI, XML edit, or calls MCP without naming a specific tool |
+| `search_bannerlord_docs` | Search official tutorials and BannerlordModding.LT community docs for workflows, editor usage, assets, Gauntlet UI, module structure, and practices |
+| `search_bannerlord_api_docs` | Search official API Doxygen symbols; when the API version does not match the installed game, treat it as historical reference and prefer local decompiled source |
 
 ### Structured Gameplay Lookups
 
@@ -255,6 +263,8 @@ bun run start:bannerlord                                         # start default
 bun run start:bannerlord:full                                    # start full MCP
 bun run verify:memory                                            # verify native project-memory tools
 bun run index:gameplay                                           # rebuild gameplay index only
+bun run index:docs                                               # index official and community docs
+bun run index:api-docs                                           # lightly index all official API symbol versions
 bun run index:mod-source -- --source-dir "<MOD_SOURCE_DIR>"     # index local mod source
 bun run verify:bannerlord -- --game-dir "<BANNERLORD_GAME_DIR>" # local regression check
 bun run smoke:release                                            # quick build validation

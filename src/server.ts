@@ -33,6 +33,9 @@ import { readGauntletUi } from './tools/read-gauntlet-ui'
 import { readModFile } from './tools/read-mod-file'
 import { readModType } from './tools/read-mod-type'
 import { resolveLocalization } from './tools/resolve-localization'
+import { searchApiDocs } from './tools/search-api-docs'
+import { searchDocs } from './tools/search-docs'
+import { searchKnowledge } from './tools/search-knowledge'
 import { searchModSource } from './tools/search-mod-source'
 import { searchSource } from './tools/search-source'
 import { searchXml } from './tools/search-xml'
@@ -538,6 +541,73 @@ server.registerTool(
     },
   },
   async ({ query }) => await searchXml(query),
+)
+
+server.registerTool(
+  'search_bannerlord_knowledge',
+  {
+    title: 'Search Bannerlord Knowledge',
+    description:
+      'Use this first when the user asks in natural language or Chinese to call MCP for Bannerlord knowledge, for example "调用 mcp 查一下", "我要制作一个 mod", "我要做一个功能", "怎么写补丁", "怎么做界面", or "帮我查这个类". It automatically searches official tutorials, community docs, official API symbols, and local decompiled source together, then labels official API results as reference-only when the installed game version does not match.',
+    inputSchema: {
+      query: z
+        .string()
+        .describe('Natural-language request from the user, for example "我要做一个招募俘虏的 mod", "怎么写 SubModule", or "查 CampaignBehavior".'),
+      intent: z
+        .enum(['auto', 'make_mod', 'api', 'docs', 'source'])
+        .optional()
+        .default('auto')
+        .describe('Optional routing hint. Leave auto for normal user requests.'),
+      limit: z.number().optional().default(5).describe('Maximum result count per source.'),
+    },
+    annotations: {
+      readOnlyHint: true,
+      openWorldHint: false,
+    },
+  },
+  async ({ query, intent, limit }) => await searchKnowledge(sandbox, query, intent, limit),
+)
+
+server.registerTool(
+  'search_bannerlord_docs',
+  {
+    title: 'Search Bannerlord Modding Docs',
+    description:
+      'Use this to search the locally indexed official Bannerlord modding tutorial docs and BannerlordModding.LT community docs. Best for concepts, workflows, editor usage, asset pipelines, module structure, Gauntlet UI guides, and community modding practices before checking local code.',
+    inputSchema: {
+      query: z.string().describe('Focused keywords such as Gauntlet UI, SubModule, scene editor, asset bundle, or Harmony.'),
+      source: z.enum(['all', 'official', 'community']).optional().default('all').describe('Limit results to the official tutorial docs, community docs, or both.'),
+      limit: z.number().optional().default(8).describe('Maximum number of matches to return.'),
+    },
+    annotations: {
+      readOnlyHint: true,
+      openWorldHint: false,
+    },
+  },
+  async ({ query, source, limit }) => await searchDocs(query, source, limit),
+)
+
+server.registerTool(
+  'search_bannerlord_api_docs',
+  {
+    title: 'Search Bannerlord Official API Docs',
+    description:
+      'Use this to search the locally indexed official Bannerlord API Doxygen symbols by class, method, property, enum, event, or variable. The result reports the installed game version and API version match status; when they do not match, treat the official API as historical reference and prefer local decompiled source.',
+    inputSchema: {
+      query: z.string().describe('Symbol or keyword such as Hero, CampaignBehavior, MobileParty, OnSessionLaunched, or MBObjectManager.'),
+      version: z.string().optional().describe('Optional official API version such as 1.3.14. If omitted, the tool tries the installed game version and falls back to the latest indexed API version.'),
+      section: z
+        .enum(['classes', 'functions', 'properties', 'events', 'enums', 'enumvalues', 'variables'])
+        .optional()
+        .describe('Optional Doxygen symbol section filter.'),
+      limit: z.number().optional().default(10).describe('Maximum number of matches to return.'),
+    },
+    annotations: {
+      readOnlyHint: true,
+      openWorldHint: false,
+    },
+  },
+  async ({ query, version, section, limit }) => await searchApiDocs(query, version, section, limit),
 )
 
 server.registerTool(

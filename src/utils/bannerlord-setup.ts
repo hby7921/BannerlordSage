@@ -24,6 +24,10 @@ export type SetupState = {
   version: 2
   initializedAt?: string
   gameDir?: string
+  gameVersion?: string
+  buildChangeset?: string
+  fullVersion?: string
+  versionSource?: string
   dllScope?: DllImportScope
   xmlScope?: XmlImportScope
   dlls: Record<
@@ -46,6 +50,13 @@ export type SetupState = {
       updatedAt: string
     }
   >
+}
+
+export type GameVersionInfo = {
+  gameVersion?: string
+  buildChangeset?: string
+  fullVersion?: string
+  versionSource?: string
 }
 
 export type XmlCopySummary = {
@@ -169,6 +180,49 @@ export async function ensureGameDir(gameId: string, candidate?: string): Promise
 
 export async function ensureBannerlordGameDir(candidate?: string): Promise<string> {
   return ensureGameDir('bannerlord', candidate)
+}
+
+export async function readGameVersionInfo(gameId: string, gameDir: string): Promise<GameVersionInfo> {
+  if (gameId !== 'bannerlord') {
+    return {}
+  }
+
+  return readBannerlordGameVersionInfo(gameDir)
+}
+
+export async function readBannerlordGameVersionInfo(gameDir: string): Promise<GameVersionInfo> {
+  const versionCandidates = [
+    join(gameDir, 'bin', 'Win64_Shipping_Client', 'Version.xml'),
+    join(gameDir, 'bin', 'Win64_Shipping_Server', 'Version.xml'),
+  ]
+  let gameVersion: string | undefined
+  let versionSource: string | undefined
+
+  for (const candidate of versionCandidates) {
+    const version = await readVersionXmlValue(candidate)
+    if (version) {
+      gameVersion = version
+      versionSource = relative(gameDir, candidate).replaceAll('\\', '/')
+      break
+    }
+  }
+
+  if (!gameVersion) {
+    const nativeSubModule = join(gameDir, 'Modules', 'Native', 'SubModule.xml')
+    const version = await readSubModuleVersion(nativeSubModule)
+    if (version) {
+      gameVersion = version
+      versionSource = relative(gameDir, nativeSubModule).replaceAll('\\', '/')
+    }
+  }
+
+  const buildChangeset = await readPackageInfoChangeset(join(gameDir, 'package_info.txt'))
+  return {
+    gameVersion,
+    buildChangeset,
+    fullVersion: composeFullVersion(gameVersion, buildChangeset),
+    versionSource,
+  }
 }
 
 export async function computeFileMd5(path: string): Promise<string> {
@@ -522,6 +576,48 @@ function getConfiguredGameDir(gameId: string): string | undefined {
 function getPrimaryGameDirEnvName(gameId: string): string {
   const upperGameId = gameId.trim().replace(/[^A-Za-z0-9]+/g, '_').toUpperCase()
   return `BANNERSAGE_${upperGameId}_GAME_DIR`
+}
+
+async function readVersionXmlValue(path: string): Promise<string | undefined> {
+  try {
+    const raw = await readFile(path, 'utf8')
+    const singleplayer = raw.match(/<Singleplayer\b[^>]*\bValue\s*=\s*"([^"]+)"/i)?.[1]
+    const fallbackValue = raw.match(/\bValue\s*=\s*"([^"]+)"/i)?.[1]
+    return normalizeVersionText(singleplayer || fallbackValue)
+  } catch {
+    return undefined
+  }
+}
+
+async function readSubModuleVersion(path: string): Promise<string | undefined> {
+  try {
+    const raw = await readFile(path, 'utf8')
+    const value = raw.match(/\bVersion\s*=\s*"([^"]+)"/i)?.[1]
+    return normalizeVersionText(value)
+  } catch {
+    return undefined
+  }
+}
+
+async function readPackageInfoChangeset(path: string): Promise<string | undefined> {
+  try {
+    const raw = await readFile(path, 'utf8')
+    return raw.match(/^Compile Changeset:\s*([^\r\n]+)/im)?.[1]?.trim() || undefined
+  } catch {
+    return undefined
+  }
+}
+
+function composeFullVersion(gameVersion?: string, buildChangeset?: string): string | undefined {
+  if (!gameVersion) return undefined
+  if (!buildChangeset) return gameVersion
+  if (gameVersion.endsWith(`.${buildChangeset}`)) return gameVersion
+  return `${gameVersion}.${buildChangeset}`
+}
+
+function normalizeVersionText(value?: string): string | undefined {
+  const text = value?.trim()
+  return text || undefined
 }
 
 function getLogicalModuleName(relativePath: string): string | undefined {

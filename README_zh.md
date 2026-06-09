@@ -32,12 +32,12 @@ BannerlordSage 包含基于 Vortex 的 RimSage 演化而来的工作。
 
 ## 工具总览
 
-BannerlordSage 共提供 **34 个工具**，分两个入口：
+BannerlordSage 共提供 **37 个工具**，分两个入口：
 
 | 入口 | 工具数 | 说明 |
 |------|--------|------|
-| `bun run start:bannerlord` | 32 | 默认工具集，适合查询、分析、本地 mod 工作和项目记忆 |
-| `bun run start:bannerlord:full` | 34 | 额外提供工作区创建和 XSLT Patch 生成 |
+| `bun run start:bannerlord` | 35 | 默认工具集，适合查询、分析、本地 mod 工作和项目记忆 |
+| `bun run start:bannerlord:full` | 37 | 额外提供工作区创建和 XSLT Patch 生成 |
 
 基本使用流程：**运行 setup → 启动 MCP → 让模型调用工具**
 
@@ -72,6 +72,14 @@ BannerlordSage 共提供 **34 个工具**，分两个入口：
 | `search_xml` | 在官方 XML 中搜索某个 ID、字段、token 或概念 |
 | `resolve_localization` | 将游戏内本地化 token（如 `{=abc123}`）解析为实际文本 |
 | `read_gauntlet_ui` | 查看 Gauntlet UI 界面文件的绑定关系和交互逻辑 |
+
+### 官方/社区文档与 API
+
+| 工具 | 功能说明 |
+|------|----------|
+| `search_bannerlord_knowledge` | 自然语言统一入口；用户说“我要做一个 Mod/功能/补丁”时优先用它同时查文档、API 和本地反编译源码 |
+| `search_bannerlord_docs` | 搜索官方教程和 BannerlordModding.LT 社区文档，适合查流程、编辑器、资产、Gauntlet UI、模块结构等 |
+| `search_bannerlord_api_docs` | 搜索官方 API Doxygen 符号；版本不匹配时只作历史参考，本地反编译源码仍是权威 |
 
 ### 结构化玩法查询
 
@@ -256,6 +264,8 @@ bun run start:bannerlord                                         # 启动默认 
 bun run start:bannerlord:full                                    # 启动完整版 MCP
 bun run verify:memory                                            # 验证原生项目记忆工具
 bun run index:gameplay                                           # 单独重建玩法索引
+bun run index:docs                                               # 索引官方教程和社区文档
+bun run index:api-docs                                           # 轻量索引所有官方 API 版本的符号
 bun run index:mod-source -- --source-dir "<MOD_SOURCE_DIR>"     # 索引本地 Mod 源码
 bun run verify:bannerlord -- --game-dir "<BANNERLORD_GAME_DIR>" # 本机回归验证
 bun run smoke:release                                            # 快速验证构建产物

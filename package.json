@@ -28,7 +28,9 @@
     "index:csharp": "bun run src/scripts/index-csharp.ts",
     "index:mod-source": "bun run src/scripts/index-mod-source.ts",
     "index:xml": "bun run src/scripts/index-xml.ts",
-    "index:gameplay": "bun run src/scripts/index-bannerlord-gameplay.ts"
+    "index:gameplay": "bun run src/scripts/index-bannerlord-gameplay.ts",
+    "index:docs": "bun run src/scripts/index-docs.ts",
+    "index:api-docs": "bun run src/scripts/index-api-docs.ts"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.26.0",

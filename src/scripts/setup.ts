@@ -14,9 +14,11 @@ import {
   getDecompileOutputDirForGame,
   loadSetupStateForGame,
   promptForDisclaimerConfirmation,
+  readGameVersionInfo,
   resolveDllInputs,
   saveSetupStateForGame,
   splitCliList,
+  type SetupState,
 } from '../utils/bannerlord-setup'
 import { DEFAULT_GAME_ID, getGamePaths } from '../utils/env'
 import { databaseHasColumns, databaseHasTable } from '../utils/db'
@@ -54,9 +56,16 @@ export async function runSetup(args = process.argv.slice(2)): Promise<{ runtimeC
   }
 
   const state = await loadSetupStateForGame(cli.game)
+  const previousVersionKey = getSetupVersionKey(state)
   state.gameDir = gameDir
   state.dllScope = cli.dllScope
   state.xmlScope = cli.xmlScope
+  const versionInfo = await readGameVersionInfo(cli.game, gameDir)
+  state.gameVersion = versionInfo.gameVersion
+  state.buildChangeset = versionInfo.buildChangeset
+  state.fullVersion = versionInfo.fullVersion
+  state.versionSource = versionInfo.versionSource
+  const versionChanged = previousVersionKey !== getSetupVersionKey(state)
 
   if (cli.clean) {
     state.dlls = {}
@@ -317,6 +326,7 @@ export async function runSetup(args = process.argv.slice(2)): Promise<{ runtimeC
     shouldBuildCsharpIndex ||
     shouldBuildXmlIndex ||
     shouldBuildGameplayIndex ||
+    versionChanged ||
     !(await fileExists(gamePaths.versionPath))
 
   if (runtimeChanged) {
@@ -326,6 +336,10 @@ export async function runSetup(args = process.argv.slice(2)): Promise<{ runtimeC
   console.log('\nSetup complete.')
   console.log(`Game profile: ${profile.id} (${profile.displayName})`)
   console.log(`Game directory: ${gameDir}`)
+  console.log(`Game version: ${state.gameVersion || '(unknown)'}`)
+  console.log(`Build changeset: ${state.buildChangeset || '(unknown)'}`)
+  console.log(`Full version: ${state.fullVersion || '(unknown)'}`)
+  console.log(`Version source: ${state.versionSource || '(unknown)'}`)
   console.log(`DLLs decompiled: ${decompiledDlls.length}`)
   console.log(`DLLs skipped by size/mtime: ${skippedDllsByFingerprint.length}`)
   console.log(`DLLs skipped by MD5: ${skippedDllsByMd5.length}`)
@@ -583,6 +597,15 @@ function resolveDecompileJobCount(requestedJobs: number | undefined, dllCount: n
 
   const cpuCount = Math.max(1, availableParallelism())
   return Math.min(cpuCount, dllCount, cpuCount > 1 ? 2 : 1)
+}
+
+function getSetupVersionKey(state: SetupState): string {
+  return [
+    state.gameVersion || '',
+    state.buildChangeset || '',
+    state.fullVersion || '',
+    state.versionSource || '',
+  ].join('|')
 }
 
 async function mapWithConcurrency<T, R>(
