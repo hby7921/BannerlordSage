@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Module>
+  <Name value="BannerlordSage Editor Probe" />
+  <Id value="BannerlordSage.EditorProbe" />
+  <Version value="v0.0.1" />
+  <DefaultModule value="false" />
+  <ModuleCategory value="Singleplayer" />
+  <ModuleType value="Community" />
+  <DependedModules><DependedModule Id="Native" /></DependedModules>
+  <SubModules>
+    <SubModule>
+      <Name value="BannerlordSage Editor Probe" />
+      <DLLName value="BannerlordSage.EditorProbe.dll" />
+      <SubModuleClassType value="BannerlordSage.EditorProbe.ProbeSubModule" />
+      <Tags>
+        <Tag key="DedicatedServerType" value="none" />
+        <Tag key="IsNoRenderModeElement" value="false" />
+      </Tags>
+    </SubModule>
+  </SubModules>
+</Module>

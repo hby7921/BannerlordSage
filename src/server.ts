@@ -5,6 +5,7 @@ import { activeGameId, assetsPath } from './utils/env'
 import { getBannerlordToolsetMode } from './utils/bannerlord-toolset'
 import { bannerlordIndexStatus } from './tools/bannerlord-index-status'
 import { bannerlordDoctor } from './tools/bannerlord-doctor'
+import { registerBannerlordEditorTools } from './tools/bannerlord-editor'
 import { createModWorkspace } from './tools/create-mod-workspace'
 import { generateHarmonyPatch } from './tools/generate-harmony-patch'
 import { generateXsltPatch } from './tools/generate-xslt-patch'
@@ -48,6 +49,8 @@ export const server = new McpServer({
   name: 'bannerlord-sage',
   version: '1.0.0',
 })
+
+registerBannerlordEditorTools(server, bannerlordToolsetMode)
 
 server.registerTool(
   'bannerlord_doctor',

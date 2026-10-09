@@ -120,7 +120,11 @@ export async function bannerlordIndexStatus(gameId?: string) {
         },
         {
           key: 'diagnostic_tools',
-          values: ['bannerlord_doctor', 'bannerlord_index_status'],
+          values: ['bannerlord_doctor', 'bannerlord_index_status', 'bannerlord_editor_status'],
+        },
+        {
+          key: 'experimental_editor_tools',
+          values: activeTools.filter(name => name.startsWith('bannerlord_editor_')),
         },
         {
           key: 'project_memory_tools',
