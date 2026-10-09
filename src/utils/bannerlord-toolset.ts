@@ -3,6 +3,7 @@ export type BannerlordToolsetMode = 'query-first' | 'full'
 export const QUERY_FIRST_BANNERLORD_TOOL_NAMES = [
   'bannerlord_doctor',
   'bannerlord_index_status',
+  'bannerlord_editor_status',
   'project_memory_add',
   'project_memory_capture_session',
   'project_memory_search',
@@ -41,6 +42,11 @@ export const QUERY_FIRST_BANNERLORD_TOOL_NAMES = [
 export const AUTHORING_BANNERLORD_TOOL_NAMES = [
   'create_mod_workspace',
   'generate_xslt_patch',
+  'bannerlord_editor_entities',
+  'bannerlord_editor_prefab_info',
+  'bannerlord_editor_apply_layout',
+  'bannerlord_editor_save_scene',
+  'bannerlord_editor_capture',
 ] as const
 
 export function getBannerlordToolsetMode(): BannerlordToolsetMode {

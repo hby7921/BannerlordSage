@@ -8,6 +8,8 @@
 
 An MCP server for **Mount & Blade II: Bannerlord** that provides source code search and data browsing.
 
+> **Editor MCP is an experimental test version — PRs welcome!** Local editor authoring is currently validated against an aligned Bannerlord game and Modding Kit **v1.4.8**. Prefab layout, scene saving and viewport capture have been tested; terrain editing, playable Missions, navigation and sailing are not yet validated. [Submit a PR](https://github.com/hby7921/BannerlordSage/pulls) or [report an issue](https://github.com/hby7921/BannerlordSage/issues).
+
 It reads your local Bannerlord installation, imports XML, decompiles official DLLs, builds a SQLite index, and exposes MCP tools for AI coding agents. Use cases:
 
 - Mod development
@@ -31,12 +33,12 @@ The project remains under the MIT License. See [`LICENSE`](./LICENSE).
 
 ## Tool Overview
 
-BannerlordSage provides **37 tools** across two entrypoints:
+BannerlordSage provides **43 tools** across two entrypoints:
 
 | Entrypoint | Tools | Notes |
 |------------|-------|-------|
-| `bun run start:bannerlord` | 35 | Default toolset for query, analysis, mod-source work, and project memory |
-| `bun run start:bannerlord:full` | 37 | Adds workspace creation and XSLT patch generation |
+| `bun run start:bannerlord` | 36 | Query, analysis, mod-source work, project memory and experimental editor status |
+| `bun run start:bannerlord:full` | 43 | Adds workspace creation, XSLT patch generation and experimental editor authoring |
 
 Basic workflow: **run setup → start MCP → let the model call tools**
 
@@ -48,6 +50,24 @@ Basic workflow: **run setup → start MCP → let the model call tools**
 |------|-------------|
 | `bannerlord_doctor` | Check module health: missing dependencies, duplicate DLLs, load order issues |
 | `bannerlord_index_status` | Check whether BannerlordSage is initialized and the local index is ready |
+
+### Local Editor — Experimental
+
+| Tool | Description |
+|------|-------------|
+| `bannerlord_editor_status` | Check local bridge configuration, installed version alignment and the active scene |
+| `bannerlord_editor_entities` ⁺ | Read managed object IDs, prefabs, GUIDs and complete transforms |
+| `bannerlord_editor_prefab_info` ⁺ | Check a prefab and optional mesh bounds in the running editor |
+| `bannerlord_editor_apply_layout` ⁺ | Create or update up to 64 managed prefab roots with stable IDs |
+| `bannerlord_editor_save_scene` ⁺ | Save the active dedicated scene through the native editor |
+| `bannerlord_editor_capture` ⁺ | Return the current native viewport as a PNG image through MCP |
+
+Status is available in both entrypoints; the other five tools require full mode.
+Install the local C# bridge and open its dedicated scene first, then pass an
+optional absolute local `sessionPath` or set `BANNERSAGE_EDITOR_PROBE_SESSION` in
+the MCP service environment. The session JSON contains a local credential and
+must stay out of Git. Public tools do not launch, replace, reload or close scenes.
+See [setup, CLI, blueprints and tested limits](tools/editor-probe/README.md).
 
 ### Project Memory
 

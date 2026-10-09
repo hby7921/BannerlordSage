@@ -9,6 +9,8 @@
 
 一个提供《骑马与砍杀2：霸主》源代码搜索和数据浏览功能的 MCP 服务器。
 
+> **编辑器 MCP 目前是测试版本，欢迎提交 PR！** 本机编辑器制作功能目前仅验证了版本对齐的游戏与 Modding Kit **v1.4.8**。已测试原版物体摆放、场景保存和视口截图；地形、玩家进入、导航和船舶航行还未验证。欢迎[提交 PR](https://github.com/hby7921/BannerlordSage/pulls)一起完善，也欢迎[反馈问题](https://github.com/hby7921/BannerlordSage/issues)。
+
 它读取你本机的 Bannerlord 安装目录，导入 XML，反编译官方 DLL，建立 SQLite 索引，并通过 MCP 工具暴露给 AI coding agent 使用。适用场景：
 
 - Mod 开发
@@ -32,12 +34,12 @@ BannerlordSage 包含基于 Vortex 的 RimSage 演化而来的工作。
 
 ## 工具总览
 
-BannerlordSage 共提供 **37 个工具**，分两个入口：
+BannerlordSage 共提供 **43 个工具**，分两个入口：
 
 | 入口 | 工具数 | 说明 |
 |------|--------|------|
-| `bun run start:bannerlord` | 35 | 默认工具集，适合查询、分析、本地 mod 工作和项目记忆 |
-| `bun run start:bannerlord:full` | 37 | 额外提供工作区创建和 XSLT Patch 生成 |
+| `bun run start:bannerlord` | 36 | 查询、分析、本地 mod 工作、项目记忆和编辑器测试版状态 |
+| `bun run start:bannerlord:full` | 43 | 增加工作区创建、XSLT Patch 生成和编辑器测试版制作工具 |
 
 基本使用流程：**运行 setup → 启动 MCP → 让模型调用工具**
 
@@ -49,6 +51,23 @@ BannerlordSage 共提供 **37 个工具**，分两个入口：
 |------|----------|
 | `bannerlord_doctor` | 检查本地 Bannerlord 安装的模块健康状况：依赖缺失、重复 DLL、加载顺序异常等 |
 | `bannerlord_index_status` | 查看 BannerlordSage 当前是否初始化完成、本地索引是否可用 |
+
+### 本机编辑器（测试版）
+
+| 工具 | 功能说明 |
+|------|----------|
+| `bannerlord_editor_status` | 查看本机桥接配置、安装版本对齐情况和当前场景 |
+| `bannerlord_editor_entities` ⁺ | 读取管理物体的 ID、prefab、GUID 和完整变换 |
+| `bannerlord_editor_prefab_info` ⁺ | 在编辑器里检查 prefab 和可选的模型边界 |
+| `bannerlord_editor_apply_layout` ⁺ | 用稳定 ID 创建或更新最多 64 个原版物体 |
+| `bannerlord_editor_save_scene` ⁺ | 调用原生编辑器保存当前绑定的独立场景 |
+| `bannerlord_editor_capture` ⁺ | 通过 MCP 返回当前真实编辑器视口的 PNG 截图 |
+
+两个入口均提供状态工具，其余五项需要完整版。先在本机安装 C# 桥接模组、
+打开编辑器及绑定场景，再提供可选的绝对本机 `sessionPath`，或在 MCP 服务
+环境中配置 `BANNERSAGE_EDITOR_PROBE_SESSION`。会话 JSON 含本机访问令牌，
+请勿提交到 Git。公开工具不会自动启动、替换、重载或关闭编辑器场景。
+部署、CLI、蓝图和限制见[编辑器说明](tools/editor-probe/README.md)。
 
 ### 项目记忆
 
